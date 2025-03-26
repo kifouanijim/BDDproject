@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Resource;
+use App\Entity\User;
+use App\Entity\Category;
 use App\Form\Resource1Type;
+use App\Service\ScraperService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +16,13 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/resource')]
 final class ResourceController extends AbstractController
 {
+    private ScraperService $scraperService;
+
+    public function __construct(ScraperService $scraperService)
+    {
+        $this->scraperService = $scraperService;
+    }
+
     #[Route(name: 'app_resource_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
@@ -80,5 +90,44 @@ final class ResourceController extends AbstractController
         }
 
         return $this->redirectToRoute('app_resource_index', [], Response::HTTP_SEE_OTHER);
+    }
+
+    // Route pour scrapper un site web et ajouter une nouvelle ressource
+    #[Route('/scrape', name: 'app_resource_scrape', methods: ['POST'])]
+
+    public function scrape(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Vérifier si l'utilisateur est authentifié
+        $user = $this->getUser(); // Récupérer l'utilisateur actuellement connecté
+
+        if (!$user) {
+            return $this->json(['error' => 'User is not authenticated'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $url = $request->get('url'); // L'URL à scraper
+
+        if (!$url) {
+            return $this->json(['error' => 'URL is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            // Récupérer la catégorie optionnelle (par exemple, via un ID ou un nom de catégorie)
+            $categoryId = $request->get('categoryId');
+            $category = $categoryId ? $entityManager->getRepository(Category::class)->find($categoryId) : null;
+
+            // Scraper le site et enregistrer la ressource dans la base de données
+            $titles = $this->scraperService->scrapeWebsite($url, $user, $category);
+
+            // Retourner un message de succès
+            return $this->json([
+                'success' => true,
+                'message' => 'Resource successfully scraped and saved.',
+                'titles' => $titles
+            ], Response::HTTP_OK);
+
+        } catch (\Exception $e) {
+            // Gestion des erreurs
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

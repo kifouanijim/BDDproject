@@ -35,6 +35,10 @@ class Resource
     #[Groups(["resource:read"])]
     private \DateTime $createdAt;
 
+    #[ORM\Column(type: "text", nullable: true)]
+    #[Groups(["resource:read", "resource:write"])]
+    private ?string $content;
+
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(["resource:read", "resource:write"])]
@@ -50,17 +54,85 @@ class Resource
         $this->createdAt = new \DateTime();
     }
 
-    public function getId(): ?int { return $this->id; }
-    public function getTitle(): string { return $this->title; }
-    public function setTitle(string $title): self { $this->title = $title; return $this; }
-    public function getDescription(): ?string { return $this->description; }
-    public function setDescription(?string $description): self { $this->description = $description; return $this; }
-    public function getUrl(): string { return $this->url; }
-    public function setUrl(string $url): self { $this->url = $url; return $this; }
-    public function getCreatedAt(): \DateTime { return $this->createdAt; }
-    public function setCreatedAt(\DateTime $createdAt): self { $this->createdAt = $createdAt; return $this; }
-    public function getUser(): User { return $this->user; }
-    public function setUser(User $user): self { $this->user = $user; return $this; }
-    public function getCategory(): ?Category { return $this->category; }
-    public function setCategory(?Category $category): self { $this->category = $category; return $this; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getTitle(): string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+        return $this;
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
+    }
+
+    public function setUrl(string $url): self
+    {
+        $this->url = $url;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getContent(): ?string
+    {
+        return $this->content;
+    }
+
+    public function setContent(?string $content): self
+    {
+        $this->content = $content;
+        return $this;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getCategory(): ?Category
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?Category $category): self
+    {
+        $this->category = $category;
+        return $this;
+    }
 }
