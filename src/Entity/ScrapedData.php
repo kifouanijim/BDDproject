@@ -4,22 +4,16 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="scraped_data")
- */
+#[ORM\Entity]
+#[ORM\Table(name: "scraped_data")]
 class ScrapedData
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: "integer")]
     private $id;
 
-    /** 
-     * @ORM\Column(type="string") 
-     */
+    #[ORM\Column(type: "string")]
     private $title;
 
     public function getId(): ?int

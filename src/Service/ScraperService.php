@@ -1,5 +1,7 @@
 <?php
 // src/Service/ScraperService.php
+// src/Service/ScraperService.php
+
 namespace App\Service;
 
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -8,6 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\ScrapedData;
 use App\Entity\User;
 use App\Entity\Category;
+use App\Entity\Resource;  // Assurez-vous d'ajouter cette ligne pour utiliser l'entité Resource
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\DomCrawler\Crawler;
@@ -32,9 +35,14 @@ class ScraperService
      * 
      * @return array A list of scraped titles.
      */
-    public function scrapeWebsite(string $url): array
+    public function scrapeWebsite(string $url, User $user, ?Category $category): array
     {
         try {
+            // Vérification si l'URL est bien définie
+            if (empty($url)) {
+                throw new \Exception("The URL is empty. Cannot scrape.");
+            }
+
             // Send a GET request to the website
             $crawler = $this->client->request('GET', $url);
 
@@ -51,6 +59,7 @@ class ScraperService
                 // Créer une nouvelle ressource
                 $resource = new Resource();
                 $resource->setTitle($title);
+                $resource->setUrl($url);  // Assurez-vous de définir l'URL ici
                 $resource->setUser($user); // Associer l'utilisateur
                 $resource->setCategory($category); // Associer la catégorie
 
