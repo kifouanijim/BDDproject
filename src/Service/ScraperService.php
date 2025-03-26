@@ -1,16 +1,14 @@
 <?php
 // src/Service/ScraperService.php
-// src/Service/ScraperService.php
 
 namespace App\Service;
 
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\ScrapedData;
+use App\Entity\ScrapedData; // Importez ScrapedData
 use App\Entity\User;
 use App\Entity\Category;
-use App\Entity\Resource;  // Assurez-vous d'ajouter cette ligne pour utiliser l'entité Resource
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\BrowserKit\HttpBrowser;
 use Symfony\Component\DomCrawler\Crawler;
@@ -54,17 +52,14 @@ class ScraperService
             // Récupérer les titres <h2>
             $titles = $crawler->filter('h2')->each(fn(Crawler $node) => $node->text());
 
-            // Sauvegarde en base de données
+            // Sauvegarde en base de données dans ScrapedData
             foreach ($titles as $title) {
-                // Créer une nouvelle ressource
-                $resource = new Resource();
-                $resource->setTitle($title);
-                $resource->setUrl($url);  // Assurez-vous de définir l'URL ici
-                $resource->setUser($user); // Associer l'utilisateur
-                $resource->setCategory($category); // Associer la catégorie
+                // Créer une nouvelle entrée ScrapedData
+                $scrapedData = new ScrapedData();
+                $scrapedData->setTitle($title);
 
                 // Persister l'entrée en base de données
-                $this->entityManager->persist($resource);
+                $this->entityManager->persist($scrapedData);
             }
 
             // Enregistrer dans la base de données
