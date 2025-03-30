@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un commentaire{% endblock %}
+
+{% block body %}
+    <h2>Ajouter un commentaire pour {{ resource.title }}</h2>
+
+    <form action="{{ path('comment_add') }}" method="POST">
+        <input type="hidden" name="resource_id" value="{{ resource.id }}">
+        <textarea name="content" placeholder="Votre commentaire..." required></textarea>
+        <button type="submit">Envoyer</button>
+    </form>
+
+    <a href="{{ path('app_resource_index', { id: resource.id }) }}">Retour à la ressource</a>
+{% endblock %}

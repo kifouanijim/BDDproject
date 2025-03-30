@@ -14,6 +14,7 @@
                 <th>Url</th>
                 <th>CreatedAt</th>
                 <th>actions</th>
+                
             </tr>
         </thead>
         <tbody>
@@ -24,9 +25,13 @@
                 <td>{{ resource.description }}</td>
                 <td>{{ resource.url }}</td>
                 <td>{{ resource.createdAt ? resource.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+               
+
+
                 <td>
                     <a href="{{ path('app_resource_show', {'id': resource.id}) }}">show</a>
                     <a href="{{ path('app_resource_edit', {'id': resource.id}) }}">edit</a>
+                    <a href="{{ path('comment_form', {'id': resource.id}) }}">Ajouter un commentaire</a>
                 </td>
             </tr>
         {% else %}

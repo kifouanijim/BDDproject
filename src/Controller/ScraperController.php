@@ -1,6 +1,4 @@
 <?php
-
-// src/Controller/ScraperController.php
 // src/Controller/ScraperController.php
 
 namespace App\Controller;

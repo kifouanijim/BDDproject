@@ -27,9 +27,8 @@ class Resource1Type extends AbstractType
             ])
             ->add('category', EntityType::class, [
                 'class' => Category::class,
-                'choice_label' => 'id',
-            ])
-        ;
+                'choice_label' => 'name', // Remplace 'name' par le champ texte de ta catégorie
+            ]);      
     }
 
     public function configureOptions(OptionsResolver $resolver): void

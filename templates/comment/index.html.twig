@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Commentaires{% endblock %}
+
+{% block body %}
+    <h1>Commentaires pour "{{ resource.title }}"</h1>
+
+    <!-- Formulaire pour ajouter un commentaire -->
+    {% if app.user %}
+        <form id="comment-form" method="post" action="{{ path('comment_add') }}">
+            <input type="hidden" name="resource_id" value="{{ resource.id }}">
+            <textarea name="content" id="comment-content" placeholder="Ajoutez un commentaire..." required></textarea>
+            <button type="submit">Envoyer</button>
+        </form>
+    {% else %}
+        <p>Vous devez être connecté pour laisser un commentaire.</p>
+    {% endif %}
+
+    <h2>Liste des commentaires</h2>
+    <ul id="comment-list">
+        {% for comment in comments %}
+            <li>
+                <strong>{{ comment.user.username }}</strong> ({{ comment.createdAt|date('d/m/Y H:i') }}) :
+                <p>{{ comment.content }}</p>
+            </li>
+        {% else %}
+            <p>Aucun commentaire pour cette ressource.</p>
+        {% endfor %}
+    </ul>
+
+    <script>
+        document.getElementById('comment-form')?.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const form = event.target;
+            const formData = new FormData(form);
+            const jsonData = JSON.stringify({
+                resource_id: formData.get('resource_id'),
+                content: formData.get('content')
+            });
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: jsonData
+            });
+
+            if (response.ok) {
+                const newComment = await response.json();
+                const commentList = document.getElementById('comment-list');
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${newComment.user}</strong> (${newComment.createdAt}) : <p>${newComment.content}</p>`;
+                commentList.prepend(li);
+                document.getElementById('comment-content').value = '';
+            } else {
+                alert('Erreur lors de l\'ajout du commentaire');
+            }
+        });
+    </script>
+{% endblock %}
