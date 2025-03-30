@@ -34,7 +34,7 @@ class InscriptionController extends AbstractController
 
             // Détermination du rôle en fonction de l'email
             $email = $user->getEmail();
-            $role = str_contains($email, '@certideal.com') ? 'ROLE_ADMIN' : 'ROLE_USER';
+            $role = str_contains($email, '@admin.com') ? 'ROLE_ADMIN' : 'ROLE_USER';
 
             // Hachage du mot de passe
             $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
