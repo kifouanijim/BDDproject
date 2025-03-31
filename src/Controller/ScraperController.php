@@ -1,12 +1,11 @@
 <?php
-// src/Controller/ScraperController.php
 
 namespace App\Controller;
 
 use App\Service\ScraperService;
 use App\Entity\User;
 use App\Entity\Category;
-use App\Entity\Resource;  // Assurez-vous d'ajouter cette ligne pour utiliser l'entité Resource
+use App\Entity\Resource;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -28,35 +27,45 @@ class ScraperController extends AbstractController
     public function run(): JsonResponse
     {
         // Récupérer l'utilisateur connecté
-        $user = $this->getUser(); // Cette méthode est fournie par Symfony pour obtenir l'utilisateur authentifié
+        $user = $this->getUser();
 
-        // Si l'utilisateur n'est pas authentifié, retourner une erreur
         if (!$user) {
             return $this->json(['error' => 'User not authenticated'], 401);
         }
 
-        // Récupérer l'entité Resource à partir de la base de données
-        $resource = $this->entityManager->getRepository(Resource::class)->find(1); // Remplacez l'ID selon votre logique
+        // Récupérer toutes les ressources avec des URLs définies
+        $resources = $this->entityManager->getRepository(Resource::class)->findAll();
 
-        // Vérifier si la ressource existe et si l'URL est définie
-        if (!$resource || !$resource->getUrl()) {
-            return $this->json(['error' => 'Resource or URL not found'], 404);
+        if (empty($resources)) {
+            return $this->json(['error' => 'No resources found'], 404);
         }
 
-        // Récupérer l'URL de la ressource
-        $url = $resource->getUrl();  // Assurez-vous que `getUrl()` existe dans l'entité Resource
+        $scrapedData = [];
 
-        // Récupérer une catégorie depuis la base de données
-        $category = $this->entityManager->getRepository(Category::class)->find(1); // Remplacez par un ID valide ou logique de récupération
+        foreach ($resources as $resource) {
+            if (!$resource->getUrl()) {
+                continue; // Passer les ressources sans URL
+            }
 
-        // Scraper le site web
-        try {
-            $titles = $this->scraperService->scrapeWebsite($url, $user, $category);
-            // Retourner une réponse JSON avec les titres extraits
-            return $this->json(['scraped_titles' => $titles]);
-        } catch (\Exception $e) {
-            // En cas d'erreur, retournez l'erreur
-            return $this->json(['error' => $e->getMessage()], 500);
+            $category = $resource->getCategory(); // Récupérer la catégorie associée
+
+            try {
+                $titles = $this->scraperService->scrapeWebsite($resource->getUrl(), $user, $category);
+                $scrapedData[] = [
+                    'resource_id' => $resource->getId(),
+                    'url' => $resource->getUrl(),
+                    'scraped_titles' => $titles,
+                ];
+            } catch (\Exception $e) {
+                // Enregistrer les erreurs par URL
+                $scrapedData[] = [
+                    'resource_id' => $resource->getId(),
+                    'url' => $resource->getUrl(),
+                    'error' => $e->getMessage(),
+                ];
+            }
         }
+
+        return $this->json(['scraped_results' => $scrapedData]);
     }
 }
