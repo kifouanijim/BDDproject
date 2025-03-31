@@ -26,9 +26,7 @@ final class ResourceController extends AbstractController
     #[Route(name: 'app_resource_index', methods: ['GET'])]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $resources = $entityManager
-            ->getRepository(Resource::class)
-            ->findAll();
+        $resources = $entityManager->getRepository(Resource::class)->findAll();
 
         return $this->render('resource/index.html.twig', [
             'resources' => $resources,
@@ -38,11 +36,18 @@ final class ResourceController extends AbstractController
     #[Route('/new', name: 'app_resource_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $user = $this->getUser(); // Récupérer l'utilisateur connecté
+
+        if (!$user) {
+            return $this->redirectToRoute('app_login'); // Rediriger vers la connexion si non authentifié
+        }
+
         $resource = new Resource();
         $form = $this->createForm(Resource1Type::class, $resource);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $resource->setUser($user); // Associer l'utilisateur connecté à la ressource
             $entityManager->persist($resource);
             $entityManager->flush();
 
@@ -84,7 +89,7 @@ final class ResourceController extends AbstractController
     #[Route('/{id}', name: 'app_resource_delete', methods: ['POST'])]
     public function delete(Request $request, Resource $resource, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$resource->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $resource->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($resource);
             $entityManager->flush();
         }
@@ -92,33 +97,38 @@ final class ResourceController extends AbstractController
         return $this->redirectToRoute('app_resource_index', [], Response::HTTP_SEE_OTHER);
     }
 
-    // Route pour scrapper un site web et ajouter une nouvelle ressource
     #[Route('/scrape', name: 'app_resource_scrape', methods: ['POST'])]
-
     public function scrape(Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Vérifier si l'utilisateur est authentifié
-        $user = $this->getUser(); // Récupérer l'utilisateur actuellement connecté
+        $user = $this->getUser();
 
         if (!$user) {
             return $this->json(['error' => 'User is not authenticated'], Response::HTTP_UNAUTHORIZED);
         }
 
-        $url = $request->get('url'); // L'URL à scraper
+        $url = $request->get('url');
 
         if (!$url) {
             return $this->json(['error' => 'URL is required'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            // Récupérer la catégorie optionnelle (par exemple, via un ID ou un nom de catégorie)
             $categoryId = $request->get('categoryId');
             $category = $categoryId ? $entityManager->getRepository(Category::class)->find($categoryId) : null;
 
-            // Scraper le site et enregistrer la ressource dans la base de données
+            // Scraping du site et création de la ressource
             $titles = $this->scraperService->scrapeWebsite($url, $user, $category);
 
-            // Retourner un message de succès
+            // Création et enregistrement de la nouvelle ressource
+            $resource = new Resource();
+            $resource->setUrl($url);
+            $resource->setUser($user);
+            $resource->setCategory($category);
+            $resource->setCreatedAt(new \DateTime());
+
+            $entityManager->persist($resource);
+            $entityManager->flush();
+
             return $this->json([
                 'success' => true,
                 'message' => 'Resource successfully scraped and saved.',
@@ -126,7 +136,6 @@ final class ResourceController extends AbstractController
             ], Response::HTTP_OK);
 
         } catch (\Exception $e) {
-            // Gestion des erreurs
             return $this->json(['error' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
