@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Forum{% endblock %}
+
+{% block body %}
+    <h1>Forum</h1>
+    
+    {% if app.user %}
+        <a href="{{ path('forum_new_thread') }}" class="btn btn-primary">Créer un nouveau sujet</a>
+    {% else %}
+        <p><a href="{{ path('app_login') }}">Connectez-vous</a> pour créer un sujet.</p>
+    {% endif %}
+
+    <ul class="list-group mt-3">
+        {% for thread in threads %}
+            <li class="list-group-item">
+                <a href="{{ path('forum_thread', { id: thread.id }) }}">
+                    {{ thread.title }}
+                </a>
+                <small class="text-muted">par {{ thread.author.email }} le {{ thread.createdAt|date('d/m/Y H:i') }}</small>
+            </li>
+        {% else %}
+            <li class="list-group-item">Aucun sujet disponible.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
