@@ -82,7 +82,7 @@ class UsersAuthenticator extends AbstractLoginFormAuthenticator
         else{
             $this->logger->info("Connexion réussie pour un utilisateur : {email}", ['email' => $user->getUserIdentifier()]);
 
-        return new RedirectResponse($this->urlGenerator->generate('app_resource_index'));
+        return new RedirectResponse($this->urlGenerator->generate('forum_index'));
         }        
     }
 
